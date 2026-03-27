@@ -516,7 +516,7 @@ public class Rs2Walker {
 
 
     public static boolean walkMiniMap(WorldPoint worldPoint) {
-        return walkMiniMap(worldPoint, 5);
+        return walkMiniMap(worldPoint, config != null ? config.minimapZoomDistance() : 5);
     }
 
     /**
@@ -1808,6 +1808,14 @@ public class Rs2Walker {
             Rs2Dialogue.sleepUntilSelectAnOption();
             Rs2Dialogue.clickOption(transport.getDisplayInfo(), true);
             sleepUntil(() -> Rs2Player.getWorldLocation().distanceTo2D(transport.getDestination()) < OFFSET, 10000);
+            return true;
+        }
+
+        // Handle Swamp Boat (Mort Myre Swamp rowboat to Mort'ton)
+        if (tileObject.getId() == ObjectID.ROUTE_ROWBOAT_HOLLOWS) {
+            Rs2Player.waitForWalking();
+            sleepUntil(() -> Rs2Player.getWorldLocation().distanceTo2D(transport.getDestination()) < OFFSET, 10000);
+            sleep(600 * 5); // wait 5 extra ticks before moving
             return true;
         }
 

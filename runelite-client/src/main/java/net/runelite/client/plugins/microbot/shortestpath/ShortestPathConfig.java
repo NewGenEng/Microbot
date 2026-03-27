@@ -364,6 +364,21 @@ public interface ShortestPathConfig extends Config {
         return 5;
     }
 
+    @Range(
+            min = 1,
+            max = 10
+    )
+    @ConfigItem(
+            keyName = "minimapZoomDistance",
+            name = "Minimap zoom distance",
+            description = "Zoom distance used when walking via the minimap<br>(lower = more zoomed in, higher = more zoomed out)",
+            position = 29,
+            section = sectionSettings
+    )
+    default int minimapZoomDistance() {
+        return 5;
+    }
+
     @ConfigSection(
             name = "Display",
             description = "Options for displaying the path on the world map, minimap and scene tiles",
