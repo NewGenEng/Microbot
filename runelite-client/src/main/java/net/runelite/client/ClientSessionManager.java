@@ -55,7 +55,7 @@ public class ClientSessionManager
 
 	private UUID sessionId = UUID.randomUUID();
 	private UUID microbotSessionId;
-	private MicrobotApi microbotApi;
+	private final MicrobotApi microbotApi;
 
 	@Inject
 	ClientSessionManager(ScheduledExecutorService executorService,
@@ -81,12 +81,20 @@ public class ClientSessionManager
 			try
 			{
 				sessionId = sessionClient.open();
-				microbotSessionId = microbotApi.microbotOpen();
 				log.debug("Opened session {}", sessionId);
 			}
 			catch (IOException ex)
 			{
 				log.warn("error opening session", ex);
+			}
+
+			try
+			{
+				microbotSessionId = microbotApi.microbotOpen();
+			}
+			catch (IOException ex)
+			{
+				log.debug("Unable to open Microbot telemetry session", ex);
 			}
 		});
         scheduledFuture = executorService.scheduleWithFixedDelay(RunnableExceptionLogger.wrap(this::ping), (int) (5 * 60 * Math.random()), 10 * 60, TimeUnit.SECONDS);
@@ -98,8 +106,14 @@ public class ClientSessionManager
 	private void onClientShutdown(ClientShutdown e)
 	{
 		if (disableTelemetry) return;
-		scheduledFuture.cancel(true);
-		scheduledFutureMicroBot.cancel(true);
+		if (scheduledFuture != null)
+		{
+			scheduledFuture.cancel(true);
+		}
+		if (scheduledFutureMicroBot != null)
+		{
+			scheduledFutureMicroBot.cancel(true);
+		}
 		e.waitFor(executorService.submit(() ->
 		{
 			try
@@ -120,6 +134,7 @@ public class ClientSessionManager
 				log.warn(null, ex);
 			}
 			sessionId = null;
+			microbotSessionId = null;
 		}));
 	}
 
@@ -154,7 +169,7 @@ public class ClientSessionManager
 		}
 		catch (IOException ex)
 		{
-			log.warn("unable to open session", ex);
+			log.debug("Unable to open Microbot telemetry session", ex);
 			return;
 		}
 
@@ -171,8 +186,8 @@ public class ClientSessionManager
 		}
 		catch (IOException ex)
 		{
-			log.warn("Resetting session", ex);
-			sessionId = null;
+			log.debug("Resetting Microbot telemetry session", ex);
+			microbotSessionId = null;
 		}
 
 	}
